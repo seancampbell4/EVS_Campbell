@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EVS 3000L</title>
+
+
+    <!-- Load Leaflet from CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Load Esri Leaflet -->
+    <script src="https://unpkg.com/esri-leaflet"></script>
+
+    <style>
+        #mapid {
+            height: 100vh;
+            width: 100%;
+        }
+    </style>
+
+</head>
+<body>
+
+    <!-- Map Container -->
+    <div id="mapid"></div>
+
+    <script>
+        // Initialize Map
+        var mymap = L.map('mapid').setView([29.6339, -82.3699], 16.8);
+
+        // Base Layers
+        var earth = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        }).addTo(mymap);
+
+        var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri, Earthstar Geographics',
+            maxZoom: 19
+        });
+
+        // Layer Control
+        var baseMaps = {
+            "Earth": earth,
+            "Satellite": satellite
+        };
+
+        L.control.layers(baseMaps).addTo(mymap);
+
+         // Feature Layer from ArcGIS Online
+         var featureLayer = L.esri.featureLayer({
+            url: 'https://services.arcgis.com/LBbVDC0hKPAnLRpO/arcgis/rest/services/tree_measurement_all_campbell/FeatureServer/0',
+            style: function () {
+                return { color: "purple", weight: 1, fillOpacity: 0.6 };
+            },
+            pointToLayer: function (geojson, latlng) {
+                return L.circleMarker(latlng, {
+                    radius: 8,  // Adjust size of circles
+                    fillColor: "yellow",
+                    color: "white",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                });
+            },
+
+            onEachFeature: function (feature, layer) {
+                // Content for hover/click popup
+                var popupContent = `
+                    <strong>Species:</strong> ${feature.properties.species || "Unknown"}<br>
+                    <strong>DBH:</strong> ${feature.properties.dbh_inches || "N/A"} inches<br>
+                    <strong>Height:</strong> ${feature.properties.height_stick_feet_inches || "N/A"} feet<br>
+                    <strong>Names:</strong> ${feature.properties.names || "N/A"}<br>
+                    <strong>Location:</strong> ${feature.properties.location || "N/A"}<br>
+                `;
+                layer.bindPopup(popupContent);
+            }
+
+        }).addTo(mymap);
+
+
+    </script>
+
+</body>
+</html>
